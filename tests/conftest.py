@@ -1,6 +1,5 @@
+import os
 import pathlib
-
-import pytest
 
 
 def pytest_configure():
@@ -36,7 +35,7 @@ def pytest_configure():
             "default": {
                 "BACKEND": "channels_redis.pubsub.RedisPubSubChannelLayer",
                 "CONFIG": {
-                    "hosts": ["redis://localhost:6379/0"],
+                    "hosts": [os.getenv("CHANNEL_LAYERS", "redis://localhost:6379/0")],
                 },
             },
         }
