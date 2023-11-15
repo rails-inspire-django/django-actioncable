@@ -54,8 +54,6 @@ class ActionCableConsumer(AsyncJsonWebsocketConsumer):
             # Stop the ping task when disconnecting
             self.ping_task.cancel()
 
-        await self.close()
-
     async def send_ping(self):
         while True:
             ping_message = {"type": "ping", "message": int(time.time())}
