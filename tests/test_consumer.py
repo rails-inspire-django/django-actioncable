@@ -2,6 +2,7 @@ import pytest
 from channels.testing import WebsocketCommunicator
 from channels.layers import get_channel_layer
 from actioncable import cable_channel_register, ActionCableConsumer, CableChannel, compact_encode_json
+from actioncable.utils import async_cable_broadcast
 
 
 @cable_channel_register
@@ -45,17 +46,7 @@ async def test_subscribe():
     assert response['type'] == 'confirm_subscription'
 
     # Message
-    channel_layer = get_channel_layer()
-    await channel_layer.group_send(
-        group_name,
-        {
-            "type": "message",
-            "group": group_name,
-            "data": {
-                "message": 'html_snippet',
-            },
-        },
-    )
+    await async_cable_broadcast(group_name, 'html_snippet')
 
     response = await communicator.receive_json_from(timeout=5)
     assert response['message'] == 'html_snippet'
@@ -72,17 +63,7 @@ async def test_subscribe():
     await communicator.send_to(text_data=compact_encode_json(subscribe_command))
 
     # Message
-    channel_layer = get_channel_layer()
-    await channel_layer.group_send(
-        group_name,
-        {
-            "type": "message",
-            "group": group_name,
-            "data": {
-                "message": 'html_snippet',
-            },
-        },
-    )
+    await async_cable_broadcast(group_name, 'html_snippet')
 
     assert await communicator.receive_nothing() is True
 
