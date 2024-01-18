@@ -88,10 +88,9 @@ class ActionCableConsumer(AsyncJsonWebsocketConsumer):
         elif command == "unsubscribe":
             await channel_instance.unsubscribe()
 
-    async def message(self, event):
+    async def action_cable_message(self, event):
         """Send Turbo Stream HTML message back to the client"""
         group_name = event['group']
-        data = event['data']
 
         if group_name in self.group_channel_instance_map:
             for channel_instance_unique_key in self.group_channel_instance_map[group_name]:
@@ -99,7 +98,7 @@ class ActionCableConsumer(AsyncJsonWebsocketConsumer):
                 cable_channel_instance = self.identifier_to_channel_instance_map[channel_instance_unique_key]
                 await self.send_json({
                     'identifier': cable_channel_instance.identifier_key,
-                    **data,
+                    'message': event['message']
                 })
         else:
             LOGGER.warning("Group name %s not found in group_channel_instance_map", group_name)
