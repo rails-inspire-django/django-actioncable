@@ -134,7 +134,7 @@ Launch Django shell, and run below code:
 ```python
 from actioncable import cable_broadcast
 
-cable_broadcast("chat_1", {"message": "Hello World"})
+cable_broadcast("chat_1", message="Hello World")
 ```
 
 You should be able to see the message appear on the web page.
