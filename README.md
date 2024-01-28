@@ -2,6 +2,10 @@
 
 This package provides Rails Action Cable support to Django Channels.
 
+## Demo Project
+
+[django-actioncable-demo](https://github.com/rails-inspire-django/django-actioncable-demo)
+
 ## Install
 
 Please make sure [Django channels](https://channels.readthedocs.io/) is already working in Django project before installing this package.
