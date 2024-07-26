@@ -2,6 +2,8 @@
 
 This package provides Rails Action Cable support to Django Channels.
 
+[Bring Rails ActionCable to Django](https://saashammer.com/blog/bring-rails-actioncable-to-django/)
+
 ## Demo Project
 
 [django-actioncable-demo](https://github.com/rails-inspire-django/django-actioncable-demo)
