@@ -31,6 +31,7 @@ class ActionCableConsumer(AsyncJsonWebsocketConsumer):
     """
     Make Django Channels compatible with Rails ActionCable JS client
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
         self.ping_task = None
@@ -67,15 +68,19 @@ class ActionCableConsumer(AsyncJsonWebsocketConsumer):
 
         # get or create channel instance for the identifier
         if unique_identifier_key in self.identifier_to_channel_instance_map:
-            channel_instance = self.identifier_to_channel_instance_map[unique_identifier_key]
+            channel_instance = self.identifier_to_channel_instance_map[
+                unique_identifier_key
+            ]
         else:
             channel_cls = self.channel_cls_dict[identifier_dict.get("channel")]
             channel_instance = channel_cls(
                 consumer=self,
                 identifier_key=unique_identifier_key,
-                params=identifier_dict
+                params=identifier_dict,
             )
-            self.identifier_to_channel_instance_map[unique_identifier_key] = channel_instance
+            self.identifier_to_channel_instance_map[unique_identifier_key] = (
+                channel_instance
+            )
 
         if command == "subscribe":
             await channel_instance.subscribe()
@@ -87,33 +92,53 @@ class ActionCableConsumer(AsyncJsonWebsocketConsumer):
             )
         elif command == "unsubscribe":
             await channel_instance.unsubscribe()
+        elif command == "message":
+            await channel_instance.on_message(content, **kwargs)
 
     async def action_cable_message(self, event):
         """Send Turbo Stream HTML message back to the client"""
-        group_name = event['group']
+        group_name = event["group"]
 
         if group_name in self.group_channel_instance_map:
-            for channel_instance_unique_key in self.group_channel_instance_map[group_name]:
+            for channel_instance_unique_key in self.group_channel_instance_map[
+                group_name
+            ]:
                 # send message to all cable channels which subscribe to this group
-                cable_channel_instance = self.identifier_to_channel_instance_map[channel_instance_unique_key]
-                await self.send_json({
-                    'identifier': cable_channel_instance.identifier_key,
-                    'message': event['message']
-                })
+                cable_channel_instance = self.identifier_to_channel_instance_map[
+                    channel_instance_unique_key
+                ]
+                await self.send_json(
+                    {
+                        "identifier": cable_channel_instance.identifier_key,
+                        "message": event["message"],
+                    }
+                )
         else:
-            LOGGER.warning("Group name %s not found in group_channel_instance_map", group_name)
+            LOGGER.warning(
+                "Group name %s not found in group_channel_instance_map", group_name
+            )
 
     async def subscribe_group(self, group_name, cable_channel_instance):
         await self.channel_layer.group_add(group_name, self.channel_name)
-        self.group_channel_instance_map[group_name].add(cable_channel_instance.identifier_key)
+        self.group_channel_instance_map[group_name].add(
+            cable_channel_instance.identifier_key
+        )
 
     async def unsubscribe_group(self, group_name, cable_channel_instance):
         has_other_cable_channel_subscribe = False
         if group_name in self.group_channel_instance_map:
-            subscribed_channel_instance_keys = self.group_channel_instance_map[group_name]
-            if len(subscribed_channel_instance_keys) > 1 and cable_channel_instance.identifier_key in subscribed_channel_instance_keys:
+            subscribed_channel_instance_keys = self.group_channel_instance_map[
+                group_name
+            ]
+            if (
+                len(subscribed_channel_instance_keys) > 1
+                and cable_channel_instance.identifier_key
+                in subscribed_channel_instance_keys
+            ):
                 has_other_cable_channel_subscribe = True
-            self.group_channel_instance_map[group_name].discard(cable_channel_instance.identifier_key)
+            self.group_channel_instance_map[group_name].discard(
+                cable_channel_instance.identifier_key
+            )
 
         if not has_other_cable_channel_subscribe:
             # if there is no other cable channel subscribe to this group
@@ -121,7 +146,9 @@ class ActionCableConsumer(AsyncJsonWebsocketConsumer):
             await self.channel_layer.group_discard(group_name, self.channel_name)
 
         try:
-            del self.identifier_to_channel_instance_map[cable_channel_instance.identifier_key]
+            del self.identifier_to_channel_instance_map[
+                cable_channel_instance.identifier_key
+            ]
         except KeyError:
             pass
 
@@ -131,7 +158,6 @@ class ActionCableConsumer(AsyncJsonWebsocketConsumer):
 
 
 class CableChannel:
-
     def __init__(self, consumer: ActionCableConsumer, identifier_key, params=None):
         raise NotImplementedError("Please implement subscribe method")
 
@@ -146,3 +172,5 @@ class CableChannel:
         callback to run when received unsubscribe command from the client
         """
         raise NotImplementedError("Please implement unsubscribe method")
+
+    async def on_message(self, content, **kwargs): ...
