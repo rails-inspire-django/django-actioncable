@@ -103,11 +103,11 @@ class ActionCableConsumer(AsyncJsonWebsocketConsumer):
         else:
             LOGGER.warning("Group name %s not found in group_channel_instance_map", group_name)
 
-    async def subscribe_group(self, group_name, cable_channel_instance):
+    async def subscribe_group(self, group_name: str, cable_channel_instance: "CableChannel") -> None:
         await self.channel_layer.group_add(group_name, self.channel_name)
         self.group_channel_instance_map[group_name].add(cable_channel_instance.identifier_key)
 
-    async def unsubscribe_group(self, group_name, cable_channel_instance):
+    async def unsubscribe_group(self, group_name: str, cable_channel_instance: "CableChannel") -> None:
         has_other_cable_channel_subscribe = False
         if group_name in self.group_channel_instance_map:
             subscribed_channel_instance_keys = self.group_channel_instance_map[group_name]
@@ -131,6 +131,7 @@ class ActionCableConsumer(AsyncJsonWebsocketConsumer):
 
 
 class CableChannel:
+    identifier_key: str
 
     def __init__(self, consumer: ActionCableConsumer, identifier_key, params=None):
         raise NotImplementedError("Please implement subscribe method")
